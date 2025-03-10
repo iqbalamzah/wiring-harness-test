@@ -1,0 +1,70 @@
+#include <Arduino.h>
+#include "PCF8574.h"
+
+#define SERIAL_BAUD 115200
+
+#define PCF8_ADDR1 0x20
+// Set i2c address
+PCF8574 pcf1(PCF8_ADDR1);
+const int numPins = 8; // 8 pin dari PCF8574
+
+// tentukan pasangannya
+const int pair0[][2] = {
+    {P0, P6},
+    {P1, P7}};
+
+void setup()
+{
+  // memulai I2C
+  Serial.begin(SERIAL_BAUD);
+  delay (1000);
+
+  for (int j = 0; j < 2; j++)
+  {
+    pinMode(pair0[j][0], OUTPUT);
+    pinMode(pair0[j][1], INPUT_PULLUP);
+  }
+
+  // mulai pcf
+  Serial.println("Mengirim Koneksi.......");
+  if (pcf1.begin())
+  {
+    Serial.println("ADDR1 OK");
+  }
+  else
+  {
+    Serial.println("ADDR1 KO");
+  }
+
+  // put your setup code here, to run once:
+}
+
+void loop()
+{
+  // put your main code here, to run repeatedly:
+  Serial.println("Menguji kabel harness...");
+  for (int i = 0; i < 2; i++)
+  {
+    pcf1.digitalWrite(pair0[i][0], LOW); // Kirim sinyal LOW
+    delay(10);                           // Delay kecil untuk stabilisasi
+
+    if (pcf1.digitalRead(pair0[i][1]) == LOW)
+    {
+      Serial.print("Koneksi OK!:   ");
+    }
+    else
+    {
+      Serial.print("Koneksi PUTUS:   ");
+    }
+
+    Serial.print("Pin ");
+    Serial.print(pair0[i][0]);
+    Serial.print(" ke ");
+    Serial.println(pair0[i][1]);
+
+    digitalWrite(pair0[i][0], HIGH); // Reset sinyal
+  }
+
+  Serial.println("Tes selesai!\n");
+  delay(2000);
+}
